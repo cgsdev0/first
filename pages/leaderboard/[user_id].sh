@@ -19,7 +19,7 @@ htmx_page <<-EOF
   <table>
   <thead>
   <tr>
-    <th>Streamer</th>
+    <th>Viewer</th>
     <th>Score</th>
   </tr>
   </thead>
