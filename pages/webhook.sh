@@ -37,7 +37,7 @@ if [[ "$TYPE" == "notification" ]]; then
   EVENT_TYPE=$(echo "$REQUEST_BODY" | jq -r '.subscription.type')
   EVENT=$(echo "$REQUEST_BODY" | jq -r '.event')
   USER_ID=$(echo "$REQUEST_BODY" | jq -r '.condition.broadcaster_user_id')
-  REWARD_ID=$(grep "^$USER_ID " data/rewards | cut -d' ' -f2)
+  REWARD_ID=$(grep "^$USER_ID " data/rewards | cut -d' ' -f2 | tr -d '\n')
   debug "GOT NOTIFICATION FOR EVENT TYPE $EVENT_TYPE"
   if [[ "$EVENT_TYPE" == "stream.online" ]]; then
     # refresh our token
@@ -76,9 +76,9 @@ if [[ "$TYPE" == "notification" ]]; then
   elif [[ "$EVENT_TYPE" == "channel.channel_points_custom_reward_redemption.add" ]]; then
     debug "GOT REDEMPTION ADD"
     # check if we care about this reward
-    REDEEMED_ID=$(echo "$EVENT" | jq -r '.reward.id')
+    REDEEMED_ID=$(echo "$EVENT" | jq -r '.reward.id' | tr -d '\n')
     if [[ "$REDEEMED_ID" != "$REWARD_ID" ]]; then
-      debug "REWARD ID MISMATCH"
+      debug "REWARD ID MISMATCH '$REDEEMED_ID' != '$REWARD_ID'"
       return $(status_code 204)
     fi
     # refresh our token
