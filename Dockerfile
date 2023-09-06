@@ -10,7 +10,7 @@ FROM ubuntu as prod
 
 ENV DEV=false
 
-RUN apt-get update && apt-get install -y ucspi-tcp curl jq
+RUN apt-get update && apt-get install -y ucspi-tcp curl jq bc
 
 EXPOSE 3000
 
