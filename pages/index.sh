@@ -20,7 +20,7 @@ while read -r STREAMER_ID SCORE; do
     TABLE+="</tr>"
   fi
 done < <(while read -r STREAMER_ID; do
-  echo "$STREAMER_ID $( (cut -d' ' -f2 data/scores/$STREAMER_ID | paste -sd+ | bc)"
+  echo "$STREAMER_ID $(cut -d' ' -f2 data/scores/$STREAMER_ID | paste -sd+ | bc)"
 done < <(cat data/rewards | cut -d' ' -f1) | sort -nrk 2 )
 
 htmx_page <<-EOF
