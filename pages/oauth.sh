@@ -96,7 +96,7 @@ HAS_DATA=$(echo "$TWITCH_RESPONSE" | jq -r '.data')
 STATUS=$(echo "$TWITCH_RESPONSE" | jq -r '.status')
 RESPONSE="<pre>$TWITCH_RESPONSE</pre>"
 
-if [[ "$HAS_DATA" == "null" ]]; then
+if [[ "$HAS_DATA" == "null" ]] && [[ "$STATUS" != "409" ]]; then
   htmx_page <<-EOF
   <div class="container">
     <h1>${PROJECT_NAME}</h1>
