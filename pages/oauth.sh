@@ -67,7 +67,8 @@ TWITCH_RESPONSE=$(curl -Ss -X POST 'https://api.twitch.tv/helix/channel_points/c
 -H "Authorization: Bearer ${USER_ACCESS_TOKEN}" \
 -H "Client-Id: ${TWITCH_CLIENT_ID}" \
 -H 'Content-Type: application/json' \
--d '{"title": "first", "cost": 1, "is_max_per_stream_enabled": true, "max_per_stream": 3, "is_max_per_user_per_stream_enabled": 1, "max_per_user_per_stream": 1, "should_redemptions_skip_request_queue": true}')
+-d '{"title": "first", "cost": 1, "should_redemptions_skip_request_queue": true}')
+# -d '{"title": "first", "cost": 1, "is_max_per_stream_enabled": true, "max_per_stream": 3, "is_max_per_user_per_stream_enabled": 1, "max_per_user_per_stream": 1, "should_redemptions_skip_request_queue": true}')
 
 HAS_DATA=$(echo "$TWITCH_RESPONSE" | jq -r '.data')
 REWARD_ID=$(echo "$TWITCH_RESPONSE" | jq -r '.data[0].id')
