@@ -16,6 +16,9 @@ h2 {
   @apply text-xl mt-4 font-bold mb-4;
 }
 
+th {
+  text-align: left;
+}
 h1 {
   @apply text-blue-500 text-3xl mt-4 font-bold mb-4;
 }
