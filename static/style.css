@@ -5,6 +5,20 @@
 body {
   padding: 0 40px;
 }
+
+table {
+  @apply table-auto border-spacing-x-2 border-separate;
+}
+a {
+  @apply text-blue-500 hover:underline;
+}
+h2 {
+  @apply text-xl mt-4 font-bold mb-4;
+}
+
+h1 {
+  @apply text-blue-500 text-3xl mt-4 font-bold mb-4;
+}
 #signature {
   position: absolute;
   z-index: 100;
