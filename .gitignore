@@ -1,0 +1,6 @@
+data/
+pubsub/
+uploads/
+
+static/tailwind.css
+.secrets
