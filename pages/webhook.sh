@@ -15,6 +15,7 @@ if [[ -z "$SIGNATURE" ]] || [[ -z "$SIGNATURE2" ]] || [[ "$SIGNATURE" != "$SIGNA
   printf "\r\n"
   printf "\r\n"
   echo "invalid signature"
+  debug "BAD SIG"
   return $(status_code 400)
 fi
 
@@ -25,6 +26,7 @@ if [[ "$TYPE" == "webhook_callback_verification" ]]; then
   printf "\r\n"
   printf "\r\n"
   echo "$CHALLENGE"
+  debug "COMPLETING CHALLENGE"
   return $(status_code 200)
 fi
 
@@ -36,6 +38,7 @@ if [[ "$TYPE" == "notification" ]]; then
   EVENT=$(echo "$REQUEST_BODY" | jq -r '.event')
   USER_ID=$(echo "$REQUEST_BODY" | jq -r '.condition.broadcaster_user_id')
   REWARD_ID=$(grep "^$USER_ID " data/rewards | cut -d' ' -f2)
+  debug "GOT NOTIFICATION FOR EVENT TYPE $EVENT_TYPE"
   if [[ "$EVENT_TYPE" == "stream.online" ]]; then
     # refresh our token
     USER_REFRESH_TOKEN=$(grep "^$USER_ID " data/refresh_tokens | cut -d' ' -f2)
@@ -48,9 +51,11 @@ if [[ "$TYPE" == "notification" ]]; then
     USER_ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r '.access_token')
 
     if [[ "$USER_ACCESS_TOKEN" == "null" ]]; then
+      debug "BAILING - NULL ACCESS TOKEN"
       return $(status_code 500)
     fi
     if [[ "$USER_REFRESH_TOKEN" == "null" ]]; then
+      debug "BAILING - NULL REFRESH TOKEN"
       return $(status_code 500)
     fi
     sed -i 's/^'$USER_ID' .*$/'$USER_ID' '$USER_REFRESH_TOKEN'/' data/refresh_tokens
@@ -69,6 +74,13 @@ if [[ "$TYPE" == "notification" ]]; then
       printf "%s %s\n" "$USER_ID" "$BROADCASTER_NAME" >> data/username_cache
     fi
   elif [[ "$EVENT_TYPE" == "channel.channel_points_custom_reward_redemption.add" ]]; then
+    debug "GOT REDEMPTION ADD"
+    # check if we care about this reward
+    REDEEMED_ID=$(echo "$EVENT" | jq -r '.reward.id')
+    if [[ "$REDEEMED_ID" != "$REWARD_ID" ]]; then
+      debug "REWARD ID MISMATCH"
+      return $(status_code 204)
+    fi
     # refresh our token
     USER_REFRESH_TOKEN=$(grep "^$USER_ID " data/refresh_tokens | cut -d' ' -f2)
     RESPONSE=$(curl -Ss -X POST "https://id.twitch.tv/oauth2/token" \
@@ -80,9 +92,11 @@ if [[ "$TYPE" == "notification" ]]; then
     USER_ACCESS_TOKEN=$(echo "$RESPONSE" | jq -r '.access_token')
 
     if [[ "$USER_ACCESS_TOKEN" == "null" ]]; then
+      debug "BAILING - NULL ACCESS TOKEN"
       return $(status_code 500)
     fi
     if [[ "$USER_REFRESH_TOKEN" == "null" ]]; then
+      debug "BAILING - NULL REFRESH TOKEN"
       return $(status_code 500)
     fi
     sed -i 's/^'$USER_ID' .*$/'$USER_ID' '$USER_REFRESH_TOKEN'/' data/refresh_tokens
@@ -112,6 +126,8 @@ if [[ "$TYPE" == "notification" ]]; then
     -H "Client-Id: ${TWITCH_CLIENT_ID}" \
     -H 'Content-Type: application/json' \
     -d '{"title": "'$NEW_TITLE'"}')
+
+    debug "GOT UPDATE RESPONSE $TWITCH_RESPONSE"
     # increment points
     if CURRENT_SCORE=$(grep "^$REDEEMED_BY_ID " data/scores/$USER_ID); then
       CURRENT_SCORE=$(echo "$CURRENT_SCORE" | cut -d' ' -f2)
