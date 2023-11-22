@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-VERSION=v0.5.1
+VERSION=v0.5.2
 
 declare -A HTTP_HEADERS
 declare -A FILE_UPLOADS
@@ -31,7 +31,7 @@ respond() {
     printf "HTTP/1.1 %s %s\r\n" "$CODE" "$*"
     header Server "bash-stack ${VERSION:-devbuild}"
     [[ ! -z "$SESSION_HEADER_TO_BE_WRITTEN" ]] && \
-      printf "%s" "$SESSION_HEADER_TO_BE_WRITTEN"
+      printf "%s\n" "$SESSION_HEADER_TO_BE_WRITTEN"
 
 }
 
@@ -486,11 +486,12 @@ writeHttpResponse() {
 }
 
 findRoutes() {
-  cd pages
-  for i in $(find . -type f,l -iname '*.sh' \
-    | sed 's@^\./@@'); do
-    echo $i;
-  done
+  if [[ -z $ROUTES_CACHE ]] || [[ $(stat -c "%s" $ROUTES_CACHE) -eq 0 ]]; then
+    cd pages
+    find . -type f,l -iname '*.sh' | sed 's@^\./@@' | tee $ROUTES_CACHE
+  else
+    cat $ROUTES_CACHE
+  fi
 }
 
 findPredefinedRoutes() {
