@@ -62,12 +62,13 @@ TWITCH_RESPONSE=$(curl -Ss -X POST \
 
 ACCESS_TOKEN=$(echo "$TWITCH_RESPONSE" | jq -r '.access_token')
 
+CASE="${SESSION[case]:-lower}"
 # create the custom reward
 TWITCH_RESPONSE=$(curl -Ss -X POST 'https://api.twitch.tv/helix/channel_points/custom_rewards?broadcaster_id='$USER_ID \
 -H "Authorization: Bearer ${USER_ACCESS_TOKEN}" \
 -H "Client-Id: ${TWITCH_CLIENT_ID}" \
 -H 'Content-Type: application/json' \
--d '{"title": "first", "cost": 1, "is_max_per_stream_enabled": true, "max_per_stream": 3, "is_max_per_user_per_stream_enabled": 1, "max_per_user_per_stream": 1, "should_redemptions_skip_request_queue": true}')
+-d '{"title": "'$(change_case $CASE first)'", "cost": 1, "is_max_per_stream_enabled": true, "max_per_stream": 3, "is_max_per_user_per_stream_enabled": 1, "max_per_user_per_stream": 1, "should_redemptions_skip_request_queue": true}')
 
 HAS_DATA=$(echo "$TWITCH_RESPONSE" | jq -r '.data')
 REWARD_ID=$(echo "$TWITCH_RESPONSE" | jq -r '.data[0].id')
@@ -136,6 +137,11 @@ if grep -q "^$USER_ID " data/username_cache; then
   sed -i 's/^'$USER_ID' .*$/'$USER_ID' '$USER_NAME'/' data/username_cache
 else
   printf "%s %s\n" "$USER_ID" "$USER_NAME" >> data/username_cache
+fi
+if grep -q "^$USER_ID " data/case; then
+  sed -i 's/^'$USER_ID' .*$/'$USER_ID' '$CASE'/' data/case
+else
+  printf "%s %s\n" "$USER_ID" "$CASE" >> data/case
 fi
 if grep -q "^$USER_ID " data/rewards; then
   sed -i 's/^'$USER_ID' .*$/'$USER_ID' '$REWARD_ID'/' data/rewards

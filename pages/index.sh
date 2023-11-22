@@ -23,6 +23,7 @@ done < <(while read -r STREAMER_ID; do
   echo "$STREAMER_ID $(cut -d' ' -f2 data/scores/$STREAMER_ID | paste -sd+ | bc)"
 done < <(cat data/rewards | cut -d' ' -f1) | sort -nrk 2 )
 
+CASE="${SESSION[case]:-lower}"
 htmx_page <<-EOF
   <h1>${PROJECT_NAME}</h1>
   <p>Be the first person to arrive in your favorite Twitch streamer's chat and win internet points!</p>
@@ -42,4 +43,9 @@ htmx_page <<-EOF
   <h2>Register</h2>
   <p>Are you a Twitch streamer? Add this to your own stream:</p>
   <a href="https://id.twitch.tv/oauth2/authorize?client_id=${TWITCH_CLIENT_ID}&response_type=code&scope=channel:read:redemptions%20channel:manage:redemptions&force_verify=true&redirect_uri=${PROTOCOL}${HOST}/oauth" class="bg-blue-500 hover:bg-blue-700 text-white inline-block font-bold py-2 px-4 rounded">Connect</a>
+  <select name="case" hx-post="/case" hx-swap="none">
+    <option value="lower" $([[ $CASE == "lower" ]] && echo selected)>lowercase</option>
+    <option value="title" $([[ $CASE == "title" ]] && echo selected)>Titlecase</option>
+    <option value="upper" $([[ $CASE == "upper" ]] && echo selected)>UPPERCASE</option>
+  </select>
 EOF

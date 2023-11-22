@@ -39,6 +39,7 @@ if [[ "$TYPE" == "notification" ]]; then
   USER_ID=$(echo "$EVENT" | jq -r '.broadcaster_user_id')
   debug "hello from $USER_ID"
   REWARD_ID=$(grep "^$USER_ID " data/rewards | cut -d' ' -f2 | tr -d '\n')
+  CASE=$(grep "^$USER_ID " data/case | cut -d' ' -f2 | tr -d '\n')
   debug "GOT NOTIFICATION FOR EVENT TYPE $EVENT_TYPE"
   if [[ "$EVENT_TYPE" == "stream.online" ]]; then
     # refresh our token
@@ -66,7 +67,7 @@ if [[ "$TYPE" == "notification" ]]; then
     -H "Authorization: Bearer ${USER_ACCESS_TOKEN}" \
     -H "Client-Id: ${TWITCH_CLIENT_ID}" \
     -H 'Content-Type: application/json' \
-    -d '{"title": "first"}')
+    -d '{"title": "'$(change_case $CASE first)'"}')
     # update broadcaster username in cache
     BROADCASTER_NAME=$(echo "$EVENT" | jq -r '.broadcaster_user_name')
     if grep -q "^$USER_ID " data/username_cache; then
@@ -103,7 +104,7 @@ if [[ "$TYPE" == "notification" ]]; then
     sed -i 's/^'$USER_ID' .*$/'$USER_ID' '$USER_REFRESH_TOKEN'/' data/refresh_tokens
 
     # update the reward
-    TITLE=$(echo "$EVENT" | jq -r '.reward.title')
+    TITLE=$(echo "$EVENT" | jq -r '.reward.title' | tr '[:upper:]' '[:lower:]')
     REDEEMED_BY_ID=$(echo "$EVENT" | jq -r '.user_id')
     REDEEMED_BY_NAME=$(echo "$EVENT" | jq -r '.user_name')
     case $TITLE in
@@ -126,7 +127,7 @@ if [[ "$TYPE" == "notification" ]]; then
     -H "Authorization: Bearer ${USER_ACCESS_TOKEN}" \
     -H "Client-Id: ${TWITCH_CLIENT_ID}" \
     -H 'Content-Type: application/json' \
-    -d '{"title": "'$NEW_TITLE'"}')
+    -d '{"title": "'$(change_case $CASE $NEW_TITLE)'"}')
 
     debug "GOT UPDATE RESPONSE $TWITCH_RESPONSE"
     # increment points
