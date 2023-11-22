@@ -39,7 +39,8 @@ if [[ "$TYPE" == "notification" ]]; then
   USER_ID=$(echo "$EVENT" | jq -r '.broadcaster_user_id')
   debug "hello from $USER_ID"
   REWARD_ID=$(grep "^$USER_ID " data/rewards | cut -d' ' -f2 | tr -d '\n')
-  CASE=$(grep "^$USER_ID " data/case | cut -d' ' -f2 | tr -d '\n')
+  CASE="$(grep "^$USER_ID " data/case | cut -d' ' -f2 | tr -d '\n')"
+  CASE="${CASE:-lower}"
   debug "GOT NOTIFICATION FOR EVENT TYPE $EVENT_TYPE"
   if [[ "$EVENT_TYPE" == "stream.online" ]]; then
     # refresh our token
