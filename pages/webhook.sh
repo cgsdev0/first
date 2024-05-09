@@ -45,8 +45,17 @@ if [[ "$TYPE" == "notification" ]]; then
   MODE="${MODE:-legacy}"
   COUNT="$(grep "^$USER_ID " data/count | cut -d' ' -f2 | tr -d '\n')"
   COUNT="${COUNT:-0}"
+  STREAM_ID="$(grep "^$USER_ID " data/stream_id | cut -d' ' -f2 | tr -d '\n')"
+  STREAM_ID="${STREAM_ID:-42069}"
   debug "GOT NOTIFICATION FOR EVENT TYPE $EVENT_TYPE"
   if [[ "$EVENT_TYPE" == "stream.online" ]]; then
+    NEW_STREAM_ID=$(echo "$EVENT" | jq -r '.id')
+    if grep -q "^$USER_ID " data/stream_id; then
+      sed -i 's/^'$USER_ID' .*$/'$USER_ID' '$NEW_STREAM_ID'/' data/stream_id
+    else
+      printf "%s %s\n" "$USER_ID" "$NEW_STREAM_ID" >> data/mode
+    fi
+
     # refresh our token
     USER_REFRESH_TOKEN=$(grep "^$USER_ID " data/refresh_tokens | cut -d' ' -f2)
     RESPONSE=$(curl -Ss -X POST "https://id.twitch.tv/oauth2/token" \
@@ -86,7 +95,6 @@ if [[ "$TYPE" == "notification" ]]; then
       printf "%s %s\n" "$USER_ID" "$BROADCASTER_NAME" >> data/username_cache
     fi
   elif [[ "$EVENT_TYPE" == "channel.channel_points_custom_reward_redemption.add" ]]; then
-    debug "GOT REDEMPTION ADD"
     # check if we care about this reward
     REDEEMED_ID=$(echo "$EVENT" | jq -r '.reward.id' | tr -d '\n')
     if [[ "$REDEEMED_ID" != "$REWARD_ID" ]]; then
@@ -161,6 +169,7 @@ if [[ "$TYPE" == "notification" ]]; then
         -H "Authorization: Pelion ${CHARLIE_WEBHOOK_SECRET}" \
         -H 'Content-Type: application/json' \
         -d '{
+              "stream_id": '"$STREAM_ID"',
               "profile_image_url": "'"$PROFILE_IMAGE_URL"'",
               "user_id": "'"$REDEEMED_BY_ID"'",
               "user_name": "'"$REDEEMED_BY_NAME"'",

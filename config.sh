@@ -6,6 +6,7 @@ touch data/rewards
 touch data/case
 touch data/mode
 touch data/count
+touch data/stream_id
 touch data/refresh_tokens
 touch data/username_cache
 mkdir -p data/scores

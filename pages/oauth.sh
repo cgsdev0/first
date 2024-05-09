@@ -143,6 +143,11 @@ if grep -q "^$USER_ID " data/username_cache; then
 else
   printf "%s %s\n" "$USER_ID" "$USER_NAME" >> data/username_cache
 fi
+if grep -q "^$USER_ID " data/stream_id; then
+  sed -i 's/^'$USER_ID' .*$/'$USER_ID' 42069/' data/stream_id
+else
+  printf "%s %s\n" "$USER_ID" "42069" >> data/stream_id
+fi
 if grep -q "^$USER_ID " data/mode; then
   sed -i 's/^'$USER_ID' .*$/'$USER_ID' '$MODE'/' data/mode
 else
