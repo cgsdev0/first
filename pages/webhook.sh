@@ -171,7 +171,7 @@ if [[ "$TYPE" == "notification" ]]; then
         -d '{
               "stream_id": '"$STREAM_ID"',
               "profile_image_url": "'"$PROFILE_IMAGE_URL"'",
-              "user_id": "'"$REDEEMED_BY_ID"'",
+              "user_id": '"$REDEEMED_BY_ID"',
               "user_name": "'"$REDEEMED_BY_NAME"'",
               "nth": '"$COUNT"'
             }' &>/dev/null &
