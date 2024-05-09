@@ -151,12 +151,13 @@ if [[ "$TYPE" == "notification" ]]; then
     fi
     # special coppinger integration
     if [[ "$USER_ID" == "93766092" ]]; then
+      debug "charlie mode activated"
       TWITCH_RESPONSE="$(curl -Ss -X PATCH 'https://api.twitch.tv/helix/users?&id='$REDEEMED_BY_ID \
       -H "Authorization: Bearer ${USER_ACCESS_TOKEN}" \
       -H "Client-Id: ${TWITCH_CLIENT_ID}" \
       -H 'Content-Type: application/json')"
       PROFILE_IMAGE_URL="$(echo "$TWITCH_RESPONSE" | jq -r '.profile_image_url')"
-      curl -Ss "$CHARLIE_WEBHOOK_URL" \
+      curl "$CHARLIE_WEBHOOK_URL" \
         -X POST \
         -H "Authorization: Pelion ${CHARLIE_WEBHOOK_SECRET}" \
         -H 'Content-Type: application/json' \
@@ -165,7 +166,9 @@ if [[ "$TYPE" == "notification" ]]; then
               "user_id": "'"$REDEEMED_BY_ID"'",
               "user_name": "'"$REDEEMED_BY_NAME"'",
               "nth": '"$COUNT"'
-            }' &>/dev/null &
+            }' 1>&2
+    else
+      debug "not charlie: '$USER_ID'"
     fi
     # increment points
     if [[ $SCORE -gt 0 ]]; then
