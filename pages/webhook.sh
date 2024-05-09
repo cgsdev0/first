@@ -165,7 +165,7 @@ if [[ "$TYPE" == "notification" ]]; then
               "user_id": "'"$REDEEMED_BY_ID"'",
               "user_name": "'"$REDEEMED_BY_NAME"'",
               "nth": '"$COUNT"'
-            }' &
+            }' &>/dev/null &
     fi
     # increment points
     if [[ $SCORE -gt 0 ]]; then
