@@ -3,11 +3,11 @@ if [[ "$REQUEST_METHOD" != "POST" ]]; then
   return $(status_code 405)
 fi
 
-CASE="${FORM_DATA[case]}"
-if [[ "$CASE" != "upper" ]] && [[ "$CASE" != "title" ]] && [[ "$CASE" != "lower" ]]; then
+MODE="${FORM_DATA[mode]}"
+if [[ "$MODE" != "legacy" ]] && [[ "$MODE" != "checkin" ]]; then
   echo "outta here with that"
   return $(status_code 400)
 fi
 
-SESSION[case]="$CASE"
+SESSION[mode]="$MODE"
 save_session

@@ -24,6 +24,7 @@ done < <(while read -r STREAMER_ID; do
 done < <(cat data/rewards | cut -d' ' -f1) | sort -nrk 2 )
 
 CASE="${SESSION[case]:-lower}"
+MODE="${SESSION[mode]:-legacy}"
 htmx_page <<-EOF
   <h1>${PROJECT_NAME}</h1>
   <p>Be the first person to arrive in your favorite Twitch streamer's chat and win internet points!</p>
@@ -47,5 +48,9 @@ htmx_page <<-EOF
     <option value="lower" $([[ $CASE == "lower" ]] && echo selected)>lowercase</option>
     <option value="title" $([[ $CASE == "title" ]] && echo selected)>Titlecase</option>
     <option value="upper" $([[ $CASE == "upper" ]] && echo selected)>UPPERCASE</option>
+  </select>
+  <select name="mode" hx-post="/mode" hx-swap="none">
+    <option value="legacy" $([[ $MODE == "legacy" ]] && echo selected)>Only 3 redeems</option>
+    <option value="checkin" $([[ $MODE == "checkin" ]] && echo selected)>Unlimited redeems</option>
   </select>
 EOF

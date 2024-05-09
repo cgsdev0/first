@@ -41,6 +41,10 @@ if [[ "$TYPE" == "notification" ]]; then
   REWARD_ID=$(grep "^$USER_ID " data/rewards | cut -d' ' -f2 | tr -d '\n')
   CASE="$(grep "^$USER_ID " data/case | cut -d' ' -f2 | tr -d '\n')"
   CASE="${CASE:-lower}"
+  MODE="$(grep "^$USER_ID " data/mode | cut -d' ' -f2 | tr -d '\n')"
+  MODE="${MODE:-legacy}"
+  COUNT="$(grep "^$USER_ID " data/count | cut -d' ' -f2 | tr -d '\n')"
+  COUNT="${COUNT:-0}"
   debug "GOT NOTIFICATION FOR EVENT TYPE $EVENT_TYPE"
   if [[ "$EVENT_TYPE" == "stream.online" ]]; then
     # refresh our token
@@ -63,6 +67,11 @@ if [[ "$TYPE" == "notification" ]]; then
     fi
     sed -i 's/^'$USER_ID' .*$/'$USER_ID' '$USER_REFRESH_TOKEN'/' data/refresh_tokens
 
+    if grep -q "^$USER_ID " data/count; then
+      sed -i 's/^'$USER_ID' .*$/'$USER_ID' 0/' data/count
+    else
+      printf "%s %s\n" "$USER_ID" "0" >> data/count
+    fi
     # reset the name of the thing
     TWITCH_RESPONSE=$(curl -Ss -X PATCH 'https://api.twitch.tv/helix/channel_points/custom_rewards?broadcaster_id='$USER_ID'&id='$REWARD_ID \
     -H "Authorization: Bearer ${USER_ACCESS_TOKEN}" \
@@ -104,10 +113,15 @@ if [[ "$TYPE" == "notification" ]]; then
     fi
     sed -i 's/^'$USER_ID' .*$/'$USER_ID' '$USER_REFRESH_TOKEN'/' data/refresh_tokens
 
+    # update the count
+    ((COUNT++))
+    sed -i 's/^'$USER_ID' .*$/'$USER_ID' '$COUNT'/' data/count
+
     # update the reward
     TITLE=$(echo "$EVENT" | jq -r '.reward.title' | tr '[:upper:]' '[:lower:]')
     REDEEMED_BY_ID=$(echo "$EVENT" | jq -r '.user_id')
     REDEEMED_BY_NAME=$(echo "$EVENT" | jq -r '.user_name')
+    SCORE=0
     case $TITLE in
       first)
         NEW_TITLE="second"
@@ -120,24 +134,48 @@ if [[ "$TYPE" == "notification" ]]; then
         ;;
 
       third)
-        NEW_TITLE="first"
+        if [[ "$MODE" == "checkin" ]]; then
+          NEW_TITLE="checkin"
+        else
+          NEW_TITLE="first"
+        fi
         SCORE=1
         ;;
     esac
-    TWITCH_RESPONSE=$(curl -Ss -X PATCH 'https://api.twitch.tv/helix/channel_points/custom_rewards?broadcaster_id='$USER_ID'&id='$REWARD_ID \
-    -H "Authorization: Bearer ${USER_ACCESS_TOKEN}" \
-    -H "Client-Id: ${TWITCH_CLIENT_ID}" \
-    -H 'Content-Type: application/json' \
-    -d '{"title": "'$(change_case $CASE $NEW_TITLE)'"}')
-
-    debug "GOT UPDATE RESPONSE $TWITCH_RESPONSE"
+    if [[ "$NEW_TITLE" != "$TITLE" ]]; then
+      TWITCH_RESPONSE=$(curl -Ss -X PATCH 'https://api.twitch.tv/helix/channel_points/custom_rewards?broadcaster_id='$USER_ID'&id='$REWARD_ID \
+      -H "Authorization: Bearer ${USER_ACCESS_TOKEN}" \
+      -H "Client-Id: ${TWITCH_CLIENT_ID}" \
+      -H 'Content-Type: application/json' \
+      -d '{"title": "'$(change_case $CASE $NEW_TITLE)'"}')
+    fi
+    # special coppinger integration
+    if [[ "$USER_ID" == "93766092" ]]; then
+      TWITCH_RESPONSE="$(curl -Ss -X PATCH 'https://api.twitch.tv/helix/users?&id='$REDEEMED_BY_ID \
+      -H "Authorization: Bearer ${USER_ACCESS_TOKEN}" \
+      -H "Client-Id: ${TWITCH_CLIENT_ID}" \
+      -H 'Content-Type: application/json')"
+      PROFILE_IMAGE_URL="$(echo "$TWITCH_RESPONSE" | jq -r '.profile_image_url')"
+      curl -Ss "$CHARLIE_WEBHOOK_URL" \
+        -X POST \
+        -H "Authorization: Pelion ${CHARLIE_WEBHOOK_SECRET}" \
+        -H 'Content-Type: application/json' \
+        -d '{
+              "profile_image_url": "'"$PROFILE_IMAGE_URL"'",
+              "user_id": "'"$REDEEMED_BY_ID"'",
+              "user_name": "'"$REDEEMED_BY_NAME"'",
+              "nth": '"$COUNT"'
+            }' &
+    fi
     # increment points
-    if CURRENT_SCORE=$(grep "^$REDEEMED_BY_ID " data/scores/$USER_ID); then
-      CURRENT_SCORE=$(echo "$CURRENT_SCORE" | cut -d' ' -f2)
-      CURRENT_SCORE=$(( CURRENT_SCORE + SCORE ))
-      sed -i 's/^'$REDEEMED_BY_ID' .*$/'$REDEEMED_BY_ID' '$CURRENT_SCORE'/' data/scores/$USER_ID
-    else
-      printf "%s %s\n" "$REDEEMED_BY_ID" "$SCORE" >> data/scores/$USER_ID
+    if [[ $SCORE -gt 0 ]]; then
+      if CURRENT_SCORE=$(grep "^$REDEEMED_BY_ID " data/scores/$USER_ID); then
+        CURRENT_SCORE=$(echo "$CURRENT_SCORE" | cut -d' ' -f2)
+        CURRENT_SCORE=$(( CURRENT_SCORE + SCORE ))
+        sed -i 's/^'$REDEEMED_BY_ID' .*$/'$REDEEMED_BY_ID' '$CURRENT_SCORE'/' data/scores/$USER_ID
+      else
+        printf "%s %s\n" "$REDEEMED_BY_ID" "$SCORE" >> data/scores/$USER_ID
+      fi
     fi
     # update the username cache
     if grep -q "^$REDEEMED_BY_ID " data/username_cache; then

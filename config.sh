@@ -4,6 +4,8 @@ ENABLE_SESSIONS=true
 
 touch data/rewards
 touch data/case
+touch data/mode
+touch data/count
 touch data/refresh_tokens
 touch data/username_cache
 mkdir -p data/scores
