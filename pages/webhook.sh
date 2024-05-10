@@ -53,7 +53,7 @@ if [[ "$TYPE" == "notification" ]]; then
     if grep -q "^$USER_ID " data/stream_id; then
       sed -i 's/^'$USER_ID' .*$/'$USER_ID' '$NEW_STREAM_ID'/' data/stream_id
     else
-      printf "%s %s\n" "$USER_ID" "$NEW_STREAM_ID" >> data/mode
+      printf "%s %s\n" "$USER_ID" "$NEW_STREAM_ID" >> data/stream_id
     fi
 
     # refresh our token
