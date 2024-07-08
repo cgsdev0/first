@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-VERSION=v0.5.2
+VERSION=v0.6.0
 
 declare -A HTTP_HEADERS
 declare -A FILE_UPLOADS
@@ -19,6 +19,11 @@ debug() {
 
 if [[ "${DEV:-true}" == true ]]; then
   USE_HMR="$(which inotifywait)"
+
+  # disable HMR when using netcat
+  if [[ "$TCP_PROVIDER" == "nc" ]]; then
+    USE_HMR=""
+  fi
 fi
 
 header() {
@@ -248,7 +253,9 @@ parseHttpRequest() {
   # Parse query parameters
   if [[ ! -z "$REQUEST_QUERY" ]]; then
     while read -r -d '&' line; do
-      QUERY_PARAMS["${line%%=*}"]=$(urldecode "${line#*=}")
+      local VARNAME="${line%%=*}"
+      [[ -z "$VARNAME" ]] && continue
+      QUERY_PARAMS["$VARNAME"]=$(urldecode "${line#*=}")
     done <<< "${REQUEST_QUERY}&"
   fi
 
@@ -375,11 +382,19 @@ writeHttpResponse() {
       end_headers
       return
     fi
+    REALPATH="$(realpath --relative-to="./static" "$FILE_PATH")"
+    FIRST_THREE="${REALPATH:0:3}"
+    if [[ "$FIRST_THREE" == "../" ]]; then
+      respond 403 FORBIDDEN
+      end_headers
+      return
+    fi
+    debug "$REALPATH"
     respond 200 OK
     if [[ "$REQUEST_PATH" == *".css" ]]; then
       header Content-Type "text/css"
     else
-      header Content-Type "$(file -b --mime-type $FILE_PATH)"
+      header Content-Type "$(file -b --mime-type "$FILE_PATH")"
     fi
     end_headers
     cat "$FILE_PATH"
