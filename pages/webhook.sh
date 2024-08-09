@@ -86,7 +86,7 @@ if [[ "$TYPE" == "notification" ]]; then
     -H "Authorization: Bearer ${USER_ACCESS_TOKEN}" \
     -H "Client-Id: ${TWITCH_CLIENT_ID}" \
     -H 'Content-Type: application/json' \
-    -d '{"title": "'$(change_case $CASE first)'"}')
+    -d '{"title": "'$(change_case $CASE first)'", "is_enabled": true}')
     # update broadcaster username in cache
     BROADCASTER_NAME=$(echo "$EVENT" | jq -r '.broadcaster_user_name')
     if grep -q "^$USER_ID " data/username_cache; then
@@ -130,6 +130,7 @@ if [[ "$TYPE" == "notification" ]]; then
     REDEEMED_BY_ID=$(echo "$EVENT" | jq -r '.user_id')
     REDEEMED_BY_NAME=$(echo "$EVENT" | jq -r '.user_name')
     SCORE=0
+    ENABLED=true
     case $TITLE in
       first)
         NEW_TITLE="second"
@@ -146,6 +147,7 @@ if [[ "$TYPE" == "notification" ]]; then
           NEW_TITLE="checkin"
         else
           NEW_TITLE="first"
+          ENABLED=false
         fi
         SCORE=1
         ;;
@@ -155,7 +157,7 @@ if [[ "$TYPE" == "notification" ]]; then
       -H "Authorization: Bearer ${USER_ACCESS_TOKEN}" \
       -H "Client-Id: ${TWITCH_CLIENT_ID}" \
       -H 'Content-Type: application/json' \
-      -d '{"title": "'$(change_case $CASE $NEW_TITLE)'"}')
+      -d '{"title": "'$(change_case $CASE $NEW_TITLE)'", "is_enabled": '$ENABLED'}')
     fi
     # special coppinger integration
     if [[ "$USER_ID" == "93766092" ]]; then
