@@ -137,7 +137,7 @@ function htmx_page() {
   <script src="https://unpkg.com/hyperscript.org@0.9.8"></script>
   <script src="https://unpkg.com/htmx.org/dist/ext/sse.js"></script>
   </head>
-  <body>
+  <body class="dark:bg-slate-800 dark:text-white">
   $(_inject_hmr)
 EOF
 
