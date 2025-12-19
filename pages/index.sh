@@ -43,7 +43,7 @@ htmx_page <<-EOF
   <h2>Register</h2>
   <p>Are you a Twitch streamer? Add this to your own stream:</p>
   <a href="https://id.twitch.tv/oauth2/authorize?client_id=${TWITCH_CLIENT_ID}&response_type=code&scope=channel:read:redemptions%20channel:manage:redemptions&force_verify=true&redirect_uri=${PROTOCOL}${HOST}/oauth" class="bg-purple-500 hover:bg-purple-700 text-white inline-block font-bold py-2 px-4 rounded">Connect</a>
-  <select name="case" hx-post="/case" hx-swap="none">
+  <!--<select name="case" hx-post="/case" hx-swap="none">
     <option value="lower" $([[ $CASE == "lower" ]] && echo selected)>lowercase</option>
     <option value="title" $([[ $CASE == "title" ]] && echo selected)>Titlecase</option>
     <option value="upper" $([[ $CASE == "upper" ]] && echo selected)>UPPERCASE</option>
@@ -51,5 +51,5 @@ htmx_page <<-EOF
   <select name="mode" hx-post="/mode" hx-swap="none">
     <option value="legacy" $([[ $MODE == "legacy" ]] && echo selected)>Only 3 redeems</option>
     <option value="checkin" $([[ $MODE == "checkin" ]] && echo selected)>Unlimited redeems</option>
-  </select>
+  </select>-->
 EOF
