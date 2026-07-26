@@ -40,6 +40,7 @@ htmx_page <<-EOF
   $TABLE
   </tbody>
   </table>
+  <h2><a href='/viewers'>Viewer Leaderboard</a></h2>
   <h2>Register</h2>
   <p>Are you a Twitch streamer? Add this to your own stream:</p>
   <a href="https://id.twitch.tv/oauth2/authorize?client_id=${TWITCH_CLIENT_ID}&response_type=code&scope=channel:read:redemptions%20channel:manage:redemptions&force_verify=true&redirect_uri=${PROTOCOL}${HOST}/oauth" class="bg-purple-500 hover:bg-purple-700 text-white inline-block font-bold py-2 px-4 rounded">Connect</a>
