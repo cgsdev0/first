@@ -1,9 +1,9 @@
 
-if [[ "$REQUEST_METHOD" != "POST" ]]; then
+if [[ "$REQUEST_METHOD" != "GET" ]]; then
   return $(status_code 405)
 fi
 
-CASE="${FORM_DATA[case]}"
+CASE="${QUERY_PARAMS[case]}"
 if [[ "$CASE" != "upper" ]] && [[ "$CASE" != "title" ]] && [[ "$CASE" != "lower" ]]; then
   echo "outta here with that"
   return $(status_code 400)
